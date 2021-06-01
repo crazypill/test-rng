@@ -13,11 +13,17 @@
 #include <sys/fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <getopt.h>
 
 
 #define NORMAL_COLOR  "\x1B[0m"
 #define GREEN  "\x1B[32m"
 #define BLUE  "\x1B[34m"
+
+
+#define TRNG_DEVICE   "/dev/cu.usbmodem14401"
+#define PROGRAM_NAME  "truly-random-playlist"
+#define VERSION       "100"
 
 
 
@@ -26,6 +32,17 @@ typedef struct tagPathLink
     const char*         path;
     struct tagPathLink* next;
 } PathLink;
+
+
+#pragma mark -
+
+
+
+static const char* s_trng_device       = TRNG_DEVICE;
+static const char* s_musicRepoPath     = NULL;
+static const char* s_musicPlayListPath = NULL;
+
+
 
 
 #pragma mark -
@@ -87,7 +104,7 @@ bool getbit( uint32_t value, uint8_t* bitmap, uint32_t bitmap_count )
 
 int start_random_generator()
 {
-    int fd = open( "/dev/cu.usbmodem14401", O_RDWR );
+    int fd = open( s_trng_device, O_RDWR );
     if( fd < 0 )
         perror( "open failed" );
 
@@ -106,7 +123,7 @@ uint32_t get_random( int fd )
     uint32_t rando = 0;
     ssize_t bytesRead = read( fd, &rando, sizeof( uint32_t ) );
     if( bytesRead != sizeof( uint32_t ) )
-        perror( "read failed" );
+        printf( "read failed...\n" );
     return rando;
 }
 
@@ -256,7 +273,6 @@ void get_directory_content( const char* path, PathLink** head, PathLink** tail )
           {
               char d_path[4096];
               sprintf( d_path, "%s/%s", path, dir->d_name );
-//              printf( "%s%s\n", GREEN, d_path );
               get_directory_content( d_path, head, tail );
           }
         }
@@ -265,36 +281,142 @@ void get_directory_content( const char* path, PathLink** head, PathLink** tail )
 }
 
 
+uint32_t count_directory_contents( PathLink* head )
+{
+    uint32_t count = 0;
+    while( head )
+    {
+        ++count;
+        head = head->next;
+    }
+    return count;
+}
+
+
+
 void dispose_directory_content( PathLink* head )
 {
     while( head )
     {
         if( head->path )
-            free( head->path );
+            free( (void*)head->path );
         
         PathLink* dead = head;
         head = head->next;
-        free( dead );
+        free( (void*)dead );
     }
 }
 
 
+bool file_ext_is_audio( const char* filename )
+{
+    // strrchr to '.' then compare extension if there is one...  files without an extension are ignored.
+    return true;
+}
 
 #pragma mark -
 
+
+
+
+void version( int argc, const char* argv[] )
+{
+    printf( "%s, version %s", PROGRAM_NAME, "1.0.0" );
+#ifdef DEBUG
+    fputs(", compiled with debugging output", stdout);
+#endif
+    puts(".\n\
+        Copyright (c) 2021 Far Out Labs, LLC.\n\
+        This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you\n\
+        are welcome to redistribute it under certain conditions.  See the GNU General\n\
+        Public License (version 3.0) for more details.");
+    return;
+}
+
+
+void usage( int argc, const char* argv[] )
+{
+    printf( "Typical usage: %s --dir \"/my_music_folder\" --output \"/my_truly_random_playlist.m3u\"\n", PROGRAM_NAME );
+    return;
+}
+
+
+void help( int argc, const char* argv[] )
+{
+    version( argc, argv );
+    puts("");
+    usage( argc, argv );
+    puts( "\n\
+        Special parameters:\n\
+            -H, --help                 Show this help and exit.\n\
+            -v, --version              Show version and licensing information, and exit.\n\
+        Override parameters:\n\
+            -e, --device               Set the random number generator device to use.\n\
+         Required parameters:\n\
+            -d, --dir                  Set the directory to use.\n\
+            -o, --output               Set the filename to use as output.\n\
+        " );
+}
+
+
+void handle_command( int argc, const char * argv[] )
+{
+    int c = '\0';          /* for getopt_long() */
+    int option_index = 0;  /* for getopt_long() */
+
+    const static struct option long_options[] = {
+        {"help",                    no_argument,       0, 'H'},
+        {"version",                 no_argument,       0, 'v'},
+        {"dir ",                    required_argument, 0, 'd'},
+        {"device",                  required_argument, 0, 'e'},
+        {"output",                  required_argument, 0, 'o'},
+
+        {0, 0, 0, 0}
+        };
+
+    while( (c = getopt_long( argc, (char* const*)argv, "Hvd:e:o:", long_options, &option_index)) != -1 )
+    {
+        switch( c )
+        {
+            /* Complete help (-H | --help) */
+            case 'H':
+                help( argc, argv );
+                break;
+
+            /* Version information (-v | --version) */
+            case 'v':
+                version( argc, argv );
+                break;
+
+            case 'd':
+                s_musicRepoPath = optarg;
+                break;
+
+            case 'e':
+                s_trng_device = optarg;
+                break;
+
+            case 'o':
+                s_musicPlayListPath = optarg;
+                break;
+        }
+    }
+}
+
+
+#pragma mark -
 
 int main( int argc, const char * argv[] )
 {
     int       fd   = -1;
     PathLink* head = NULL;
     PathLink* tail = NULL;
-    uint32_t  item_count = 100;
+    uint8_t*  bitmap = NULL;
+    char** shadow_index = NULL;
+    
+    handle_command( argc, argv );
     
     printf( "%s\n", NORMAL_COLOR );
-    
-    uint8_t* bitmap = create_bitmap_array( item_count );
-    if( !bitmap )
-        goto exit_gracefully;
     
     fd = start_random_generator();
     if( fd < 0 )
@@ -303,22 +425,61 @@ int main( int argc, const char * argv[] )
         goto exit_gracefully;
     }
     
-//    show_directory_content( argv[1] );
-    get_directory_content( argv[1], &head, &tail );
-    
-    while( head )
+    if( !s_musicRepoPath )
     {
-        printf( "%s\n", head->path );
-        head = head->next;
+        printf( "music repo path missing!" );
+        goto exit_gracefully;
+    }
+
+    if( !s_musicPlayListPath )
+    {
+        printf( "output playlist path missing!" );
+        goto exit_gracefully;
+    }
+
+    printf( "Getting directory contents...\n" );
+    get_directory_content( s_musicRepoPath, &head, &tail );
+    
+    // now create a shadown index of linked list so we don't have to iterate the list to retrieve the elements
+    uint32_t dir_count = count_directory_contents( head );
+    
+    shadow_index = (char**)malloc( dir_count * sizeof( char* ) );
+    if( !shadow_index )
+    {
+        perror( "failed to create shadow_index!" );
+        goto exit_gracefully;
+    }
+    uint32_t index = 0;
+    PathLink* item = head;
+    while( item )
+    {
+        shadow_index[index++] = (char*)item->path;
+        item = item->next;
     }
     
+    bitmap = create_bitmap_array( dir_count );
+    if( !bitmap )
+        goto exit_gracefully;
+
     
-    uint32_t* array = fill_random_index_array( fd, item_count, bitmap );
+    printf( "Randomizing contents...\n" );
+    uint32_t* array = fill_random_index_array( fd, dir_count, bitmap );
     if( array )
     {
-        for( int i = 0; i < item_count; i++ )
+        FILE* mp = fopen( s_musicPlayListPath, "w" );
+        if( mp )
         {
-            printf( "value[%d]: %d\n", i, array[i] );
+            printf( "Writing playlist...\n" );
+            for( int i = 0; i < dir_count; i++ )
+            {
+                if( file_ext_is_audio( shadow_index[array[i]] ) )
+                {
+                    printf( "[%d:%d] %s\n", i, array[i], shadow_index[array[i]] );
+                    fprintf( mp, "%s\n", shadow_index[array[i]] );
+                }
+            }
+            
+            fclose( mp );
         }
         
         free( array );
@@ -329,5 +490,7 @@ exit_gracefully:
     dispose_directory_content( head );
     dispose_bitmap_array( bitmap );
     stop_random_generator( fd );
+    if( shadow_index )
+        free( shadow_index );
     return 0;
 }
