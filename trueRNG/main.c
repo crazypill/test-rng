@@ -22,7 +22,7 @@
 
 
 #define TRNG_DEVICE   "/dev/cu.usbmodem14401"
-#define PROGRAM_NAME  "truly-random-playlist"
+#define PROGRAM_NAME  "true-rng-playlist"
 #define VERSION       "100"
 
 
