@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <getopt.h>
-
+#include <mach/mach_time.h>
 
 #define NORMAL_COLOR  "\x1B[0m"
 #define GREEN  "\x1B[32m"
@@ -25,6 +25,11 @@
 #define PROGRAM_NAME  "true-rng-playlist"
 #define VERSION       "100"
 
+#ifdef WIN32
+typedef DWORD    TimeInterval;
+#else
+typedef uint64_t TimeInterval;
+#endif
 
 
 typedef struct tagPathLink
@@ -42,6 +47,33 @@ static const char* s_trng_device       = TRNG_DEVICE;
 static const char* s_musicRepoPath     = NULL;
 static const char* s_musicPlayListPath = NULL;
 
+
+#pragma mark -
+
+
+TimeInterval timeGetTimeMS()
+{
+#ifdef WIN32
+    return timeGetTime();
+#else
+    static mach_timebase_info_data_t sTimebaseInfo;
+    uint64_t now = mach_absolute_time();
+    
+    // Convert to milliseconds.
+    
+    // If this is the first time we've run, get the timebase.
+    // We can use denom == 0 to indicate that sTimebaseInfo is
+    // uninitialised because it makes no sense to have a zero
+    // denominator is a fraction.
+    
+    if( sTimebaseInfo.denom == 0 )
+        mach_timebase_info( &sTimebaseInfo );
+    
+    // Do the maths. We hope that the multiplication doesn't
+    // overflow; the price you pay for working in fixed point.
+    return (now / 1000000) * sTimebaseInfo.numer / sTimebaseInfo.denom;
+#endif
+}
 
 
 
@@ -415,7 +447,10 @@ int main( int argc, const char * argv[] )
     char** shadow_index = NULL;
     
     handle_command( argc, argv );
-    
+
+    TimeInterval elapsed = 0;
+    TimeInterval startTime = timeGetTimeMS();
+    TimeInterval currentTime = timeGetTimeMS();
     printf( "Starting random number generator...\n" );
     
     fd = start_random_generator();
@@ -437,7 +472,10 @@ int main( int argc, const char * argv[] )
         goto exit_gracefully;
     }
 
-    printf( "Getting directory contents...\n" );
+    elapsed = timeGetTimeMS() - currentTime;
+    currentTime = timeGetTimeMS();
+    
+    printf( "Done in %llu ms.\n\nGetting directory contents...\n", elapsed );
     get_directory_content( s_musicRepoPath, &head, &tail );
     
     // now create a shadown index of linked list so we don't have to iterate the list to retrieve the elements
@@ -461,15 +499,21 @@ int main( int argc, const char * argv[] )
     if( !bitmap )
         goto exit_gracefully;
 
-    
-    printf( "Randomizing contents...\n" );
+
+    elapsed = timeGetTimeMS() - currentTime;
+    currentTime = timeGetTimeMS();
+
+    printf( "Done in %llu ms.\n\nRandomizing contents...\n", elapsed );
     uint32_t* array = fill_random_index_array( fd, dir_count, bitmap );
     if( array )
     {
         FILE* mp = fopen( s_musicPlayListPath, "w" );
         if( mp )
         {
-            printf( "Writing playlist...\n" );
+            elapsed = timeGetTimeMS() - currentTime;
+            currentTime = timeGetTimeMS();
+
+            printf( "Done in %llu ms.\n\nWriting playlist...\n", elapsed );
             for( int i = 0; i < dir_count; i++ )
             {
                 if( file_ext_is_audio( shadow_index[array[i]] ) )
@@ -484,9 +528,11 @@ int main( int argc, const char * argv[] )
         
         free( array );
     }
-
+    
+    
 exit_gracefully:
-    printf( "\n" );
+    elapsed = timeGetTimeMS() - currentTime;
+    printf( "Done in %llu ms.\n\nElapsed time: %llu ms.\n", elapsed, timeGetTimeMS() - startTime );
     dispose_directory_content( head );
     dispose_bitmap_array( bitmap );
     stop_random_generator( fd );
