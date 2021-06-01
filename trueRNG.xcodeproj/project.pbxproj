@@ -23,7 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		FAA246BC266562C9003FBEAC /* testRNG */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testRNG; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAA246BC266562C9003FBEAC /* trueRNG */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = trueRNG; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA246BF266562C9003FBEAC /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -41,7 +41,7 @@
 		FAA246B3266562C9003FBEAC = {
 			isa = PBXGroup;
 			children = (
-				FAA246BE266562C9003FBEAC /* testRNG */,
+				FAA246BE266562C9003FBEAC /* trueRNG */,
 				FAA246BD266562C9003FBEAC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -49,25 +49,25 @@
 		FAA246BD266562C9003FBEAC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				FAA246BC266562C9003FBEAC /* testRNG */,
+				FAA246BC266562C9003FBEAC /* trueRNG */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		FAA246BE266562C9003FBEAC /* testRNG */ = {
+		FAA246BE266562C9003FBEAC /* trueRNG */ = {
 			isa = PBXGroup;
 			children = (
 				FAA246BF266562C9003FBEAC /* main.c */,
 			);
-			path = testRNG;
+			path = trueRNG;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		FAA246BB266562C9003FBEAC /* testRNG */ = {
+		FAA246BB266562C9003FBEAC /* trueRNG */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = FAA246C3266562C9003FBEAC /* Build configuration list for PBXNativeTarget "testRNG" */;
+			buildConfigurationList = FAA246C3266562C9003FBEAC /* Build configuration list for PBXNativeTarget "trueRNG" */;
 			buildPhases = (
 				FAA246B8266562C9003FBEAC /* Sources */,
 				FAA246B9266562C9003FBEAC /* Frameworks */,
@@ -77,9 +77,9 @@
 			);
 			dependencies = (
 			);
-			name = testRNG;
-			productName = testRNG;
-			productReference = FAA246BC266562C9003FBEAC /* testRNG */;
+			name = trueRNG;
+			productName = trueRNG;
+			productReference = FAA246BC266562C9003FBEAC /* trueRNG */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -95,7 +95,7 @@
 					};
 				};
 			};
-			buildConfigurationList = FAA246B7266562C9003FBEAC /* Build configuration list for PBXProject "testRNG" */;
+			buildConfigurationList = FAA246B7266562C9003FBEAC /* Build configuration list for PBXProject "trueRNG" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -108,7 +108,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				FAA246BB266562C9003FBEAC /* testRNG */,
+				FAA246BB266562C9003FBEAC /* trueRNG */,
 			);
 		};
 /* End PBXProject section */
@@ -259,7 +259,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		FAA246B7266562C9003FBEAC /* Build configuration list for PBXProject "testRNG" */ = {
+		FAA246B7266562C9003FBEAC /* Build configuration list for PBXProject "trueRNG" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FAA246C1266562C9003FBEAC /* Debug */,
@@ -268,7 +268,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		FAA246C3266562C9003FBEAC /* Build configuration list for PBXNativeTarget "testRNG" */ = {
+		FAA246C3266562C9003FBEAC /* Build configuration list for PBXNativeTarget "trueRNG" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FAA246C4266562C9003FBEAC /* Debug */,
