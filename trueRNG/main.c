@@ -503,7 +503,7 @@ int main( int argc, const char * argv[] )
     elapsed = timeGetTimeMS() - currentTime;
     currentTime = timeGetTimeMS();
 
-    printf( "Done in %llu ms.\n\nRandomizing contents...\n", elapsed );
+    printf( "Done in %llu ms.\n\nRandomizing contents for %d items...\n", elapsed, dir_count );
     uint32_t* array = fill_random_index_array( fd, dir_count, bitmap );
     if( array )
     {
