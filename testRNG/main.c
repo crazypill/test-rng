@@ -416,7 +416,7 @@ int main( int argc, const char * argv[] )
     
     handle_command( argc, argv );
     
-    printf( "%s\n", NORMAL_COLOR );
+    printf( "Starting random number generator...\n" );
     
     fd = start_random_generator();
     if( fd < 0 )
@@ -486,7 +486,7 @@ int main( int argc, const char * argv[] )
     }
 
 exit_gracefully:
-    printf( "%s\n", NORMAL_COLOR );
+    printf( "\n" );
     dispose_directory_content( head );
     dispose_bitmap_array( bitmap );
     stop_random_generator( fd );
