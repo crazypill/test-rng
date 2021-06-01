@@ -20,6 +20,17 @@
 #define BLUE  "\x1B[34m"
 
 
+
+typedef struct tagPathLink
+{
+    const char*         path;
+    struct tagPathLink* next;
+} PathLink;
+
+
+#pragma mark -
+
+
 uint8_t* create_bitmap_array( uint32_t item_count )
 {
     uint32_t num_bytes = item_count / sizeof( uint8_t );
@@ -54,8 +65,7 @@ void setbit( uint32_t value, uint8_t* bitmap, uint32_t bitmap_count )
     uint8_t  bit   = value % 8;
 //    printf( "index: %d, bit number: %d\n", index, bit );
     
-    uint8_t  data = bitmap[index];
-    bitmap[index] = data | (1 << bit);
+    bitmap[index] |= (1 << bit);
 }
 
 
@@ -167,7 +177,7 @@ uint32_t* fill_random_index_array( int fd, uint32_t item_count, uint8_t* bitmap 
 #pragma mark -
 
 
-void show_dir_content( const char* path )
+void show_directory_content( const char* path )
 {
     if( !path )
     return;
@@ -190,7 +200,7 @@ void show_dir_content( const char* path )
               char d_path[1024]; // here I am using sprintf which is safer than strcat
               sprintf( d_path, "%s/%s", path, dir->d_name );
               printf( "%s%s\n", GREEN, d_path );
-              show_dir_content( d_path );
+              show_directory_content( d_path );
           }
         }
     }
@@ -198,13 +208,87 @@ void show_dir_content( const char* path )
 }
 
 
+void get_directory_content( const char* path, PathLink** head, PathLink** tail )
+{
+    if( !path )
+        return;
+
+    DIR* d = opendir( path ); // open the path
+
+    if( !d )
+        return;
+
+    struct dirent* dir;
+
+    // if we were able to read somehting from the directory
+    while( (dir = readdir( d )) != NULL )
+    {
+        if( dir-> d_type != DT_DIR )
+        {
+            // add file to array
+            size_t path_length = strlen( path ) + strlen( dir->d_name ) + 2; // 2 bytes extra space, one for the slash and one for the null byte
+            char* full_path = malloc( path_length );
+            sprintf( full_path, "%s/%s", path, dir->d_name );
+            
+            PathLink* link = malloc( sizeof( PathLink ) );
+            
+            if( link )
+            {
+                link->path = full_path;
+                link->next = NULL;
+                
+                if( !*head )
+                    *head = link;
+                
+                if( *tail )
+                {
+                    (*tail)->next = link;
+                    *tail = link;
+                }
+                else
+                    *tail = link;
+            }
+        }
+        else
+        {
+          // if it is a directory, recurse (which is bad but won't be unbound at least)
+          if( dir -> d_type == DT_DIR && strcmp( dir->d_name, "." ) != 0 && strcmp( dir->d_name, ".." ) != 0 )
+          {
+              char d_path[4096];
+              sprintf( d_path, "%s/%s", path, dir->d_name );
+//              printf( "%s%s\n", GREEN, d_path );
+              get_directory_content( d_path, head, tail );
+          }
+        }
+    }
+    closedir( d );
+}
+
+
+void dispose_directory_content( PathLink* head )
+{
+    while( head )
+    {
+        if( head->path )
+            free( head->path );
+        
+        PathLink* dead = head;
+        head = head->next;
+        free( dead );
+    }
+}
+
+
+
 #pragma mark -
 
 
 int main( int argc, const char * argv[] )
 {
-    int fd = -1;
-    uint32_t item_count = 100;
+    int       fd   = -1;
+    PathLink* head = NULL;
+    PathLink* tail = NULL;
+    uint32_t  item_count = 100;
     
     printf( "%s\n", NORMAL_COLOR );
     
@@ -219,6 +303,16 @@ int main( int argc, const char * argv[] )
         goto exit_gracefully;
     }
     
+//    show_directory_content( argv[1] );
+    get_directory_content( argv[1], &head, &tail );
+    
+    while( head )
+    {
+        printf( "%s\n", head->path );
+        head = head->next;
+    }
+    
+    
     uint32_t* array = fill_random_index_array( fd, item_count, bitmap );
     if( array )
     {
@@ -226,12 +320,13 @@ int main( int argc, const char * argv[] )
         {
             printf( "value[%d]: %d\n", i, array[i] );
         }
+        
+        free( array );
     }
-    
-    show_dir_content( argv[1] );
-    
+
 exit_gracefully:
     printf( "%s\n", NORMAL_COLOR );
+    dispose_directory_content( head );
     dispose_bitmap_array( bitmap );
     stop_random_generator( fd );
     return 0;
