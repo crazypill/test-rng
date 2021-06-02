@@ -6,12 +6,13 @@ I was annoyed that most music apps use *SQL* to randomly pull a playlist when in
 
 Point this utlity at a folder of files and it will take the full recursive file list and truly randomize it-  This doesn't use SQL or anything weird.  Just a very random list of indices that map to the file list.  Point it at your music folder and it will generate a playlist if you name the file.m3u.
 
-As an example:
-`true-rng-playlist --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
+As an example (on Mac):
 
-The above example will most likely fail because there is no randon number generator specified.  On my system the TrueRNGv3 comes up as (depending on which USB socket it's plugged into): /dev/cu.usbmodem14401
-`true-rng-playlist --device /dev/cu.usbmodem14401 --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
+`trueRNG --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
-A text file is output which simply lists the paths.  This is a stripped down version of the .m3u file format (which is a music playlist).
+The above example will most likely fail because there is no randon number generator specified.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401.  (Depending on which USB socket it's plugged into- we don't incorporate any platform specific code to find a particular TRNG device.)
+`trueRNG --device /dev/cu.usbmodem14401 --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
+
+A text file is output which simply lists the paths.  This is a stripped down version of the .m3u file format (which is a music playlist that most apps can import or use directly).
 
 The theory of operation is simple:  we fill an array with random numbers that are unique.  They span from zero to the number of files.  The list is generated using the same algorithm as arc4random_uniform (of which I used the actual source code but swapped out the random number input).  This allows us to specify an upper bound which is the number of files.  Once the array is filled, the code then uses that array as an index into the file list.  From there a text file is output with this random order.
