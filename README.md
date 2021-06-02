@@ -10,9 +10,9 @@ As an example (on Mac):
 
 `trueRNG --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
-The above example will most likely fail because there is no randon number generator specified.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401 (which is the code's default if you don't specify a device).  You will get a different modem device depending on several factors, so check /dev for yours.  The code doesn't incorporate any platform specific code to find a particular TRNG device.
+The above example will most likely fail because there is no randon number generator specified.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401 (which is the code's default if you don't specify a device).  You will get a different modem device depending on several factors, so check /dev for your's.  The code doesn't incorporate any platform specific code to find a particular TRNG device.
 
-`trueRNG --device /dev/cu.usbmodem14401 --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
+`trueRNG --device /dev/cu.usbmodemXXXXX --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
 A text file is output which simply lists the paths.  This is a stripped down version of the .m3u file format (which is a music playlist that most apps can import or use directly).
 
