@@ -28,6 +28,10 @@
 #define PROGRAM_NAME  "true-rng-playlist"
 #define VERSION       "100"
 
+// define this to pull a few numbers from the RNG before startup
+//#define PRIME_RNG
+
+
 #ifdef WIN32
 typedef DWORD    TimeInterval;
 #else
@@ -148,6 +152,18 @@ int start_random_generator()
     if( fd < 0 )
         perror( "open failed" );
 
+#ifdef PRIME_RNG
+    // start the generator by reading a tad from it
+    for( int i = 0; i < 10; i++ )
+    {
+        uint32_t rando = 0;
+        ssize_t bytesRead = read( fd, &rando, sizeof( uint32_t ) );
+#ifdef DEBUG
+        if( bytesRead != sizeof( uint32_t ) )
+            printf( "rng priming failed...\n" );
+#endif
+    }
+#endif
     return fd;
 }
 
