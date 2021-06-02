@@ -90,7 +90,7 @@ TimeInterval timeGetTimeMS()
 
 uint8_t* create_bitmap_array( uint32_t item_count )
 {
-    uint32_t num_bytes = item_count / sizeof( uint8_t );
+    uint32_t num_bytes = item_count / 8;    // eight bits in a byte righto?
     
     // allocate a bit array to hold 0..n bits to prevent searching the list to see if a number is already in there
     uint8_t* bitmap = (uint8_t*)malloc( num_bytes );

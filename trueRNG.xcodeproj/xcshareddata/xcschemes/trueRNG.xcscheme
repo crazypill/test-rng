@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--dir /Volumes/music/iTunes/iTunes\ Media/Music --output /Users/alex/Desktop/my_playlist.m3u"
+            argument = "--device /dev/cu.usbmodem14401 --dir /Volumes/music/iTunes/iTunes\ Media/Music --output /Users/alex/Desktop/my_playlist.m3u"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
