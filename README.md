@@ -10,13 +10,21 @@ As an example (on Mac):
 
 `trueRNG --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
-The above example will most likely fail because there is no randon number generator specified.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401 (which is the code's default if you don't specify a device).  You will get a different modem device depending on several factors, so check /dev for your's.  The code doesn't incorporate any platform specific code to find a particular TRNG device.
+The above example will use the pseudo randon number generator by default.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401.  You will get a different modem device depending on several factors, so check /dev directory for your's.  The code doesn't incorporate any platform specific code to find a particular TRNG device.
 
 `trueRNG --device /dev/cu.usbmodemXXXXX --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
 A text file is output which simply lists the paths.  This is a stripped down version of the .m3u file format (which is a music playlist that most apps can import or use directly).
 
-The theory of operation is simple:  we fill an array with random numbers that are unique.  They span from zero to the number of files.  The list is generated using the same algorithm as arc4random_uniform (of which I used the actual source code but swapped out the random number input).  This allows us to specify an upper bound which is the number of files.  To fill the array we need to know if the number is already in the array and this could take a while if we have to search the array each time.  To avoid this, the code uses a bitmap field where each bit represents each number that could be in the array.  Instead of searching the array, we check the bitmap.  Once the array is filled, the code then uses that array as an index into the file list.  From there a text file is output with this random order.
+The theory of operation is simple:  we fill an array with random numbers that are unique.  They span from zero to the number of files.  
+The list is generated using the same algorithm as arc4random_uniform (of which I used the actual source code but swapped out the random number input).  
+This allows us to specify an upper bound which is the number of files.  To fill the array we need to know if the number is already in the array and this could take a while if we have to search the array each time.  
+To avoid this, the code uses a bitmap field where each bit represents each number that could be in the array.  Instead of searching the array, we check the bitmap.  Once the array is filled, the code then uses that array as an index into the file list.  
 
-If you are porting this code and run into the mach/time issue, just remove the include and make the timeGetTimeMs() routine return 0.  It's only used for timing and not critical to the functionality.  The rest should be completely portable to any POSIX or Linux system.  Most likely this will compile with:
+From there a text file is output with this random order.
+
+If you are porting this code and run into the mach/time issue, just remove the include and make the timeGetTimeMs() routine return 0.  It's only used for timing and not critical to the functionality.  
+The rest should be completely portable to any POSIX or Linux system.  
+
+Most likely this will compile with:
 `cc main.c -o trueRNG`
