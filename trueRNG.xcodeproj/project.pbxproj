@@ -25,6 +25,7 @@
 /* Begin PBXFileReference section */
 		FAA246BC266562C9003FBEAC /* trueRNG */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = trueRNG; sourceTree = BUILT_PRODUCTS_DIR; };
 		FAA246BF266562C9003FBEAC /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		FAA246CC2667212D003FBEAC /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +42,7 @@
 		FAA246B3266562C9003FBEAC = {
 			isa = PBXGroup;
 			children = (
+				FAA246CC2667212D003FBEAC /* README.md */,
 				FAA246BE266562C9003FBEAC /* trueRNG */,
 				FAA246BD266562C9003FBEAC /* Products */,
 			);
