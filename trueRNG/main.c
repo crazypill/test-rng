@@ -298,12 +298,8 @@ void get_directory_content( const char* path, PathLink** head, PathLink** tail )
                     *head = link;
                 
                 if( *tail )
-                {
                     (*tail)->next = link;
-                    *tail = link;
-                }
-                else
-                    *tail = link;
+                *tail = link;
             }
         }
         else
