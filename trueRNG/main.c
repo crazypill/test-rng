@@ -8,20 +8,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
 #include <getopt.h>
+#if __APPLE__
 #include <mach/mach_time.h>
+#endif
 
 #define NORMAL_COLOR  "\x1B[0m"
 #define GREEN  "\x1B[32m"
 #define BLUE  "\x1B[34m"
 
 
-#define TRNG_DEVICE   "/dev/cu.usbmodem14401"
+#define TRNG_DEVICE   "/dev/urandom"
 #define PROGRAM_NAME  "true-rng-playlist"
 #define VERSION       "100"
 
@@ -50,7 +53,7 @@ static const char* s_musicPlayListPath = NULL;
 
 #pragma mark -
 
-
+#if __APPLE__ || defined( WIN32 )
 TimeInterval timeGetTimeMS()
 {
 #ifdef WIN32
@@ -74,7 +77,12 @@ TimeInterval timeGetTimeMS()
     return (now / 1000000) * sTimebaseInfo.numer / sTimebaseInfo.denom;
 #endif
 }
-
+#else
+TimeInterval timeGetTimeMS()
+{
+    return 0; // not used for anything other than debug timing, so please implement as you like!
+}
+#endif
 
 
 #pragma mark -
