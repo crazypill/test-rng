@@ -28,5 +28,7 @@ From there a text file is output with this random order.
 If you are porting this code and run into the mach/time issue, just remove the include and make the timeGetTimeMs() routine return 0.  It's only used for timing and not critical to the functionality.  
 The rest should be completely portable to any POSIX or Linux system.  
 
-Most likely this will compile with:
+Most likely this will compile on all *unix* with:
 `cc main.c -o trueRNG`
+
+Mac has an Xcode project available.  Windows isn't really supported due to COM ports versus device files.  But easily ported.
