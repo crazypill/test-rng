@@ -11,7 +11,7 @@ As an example (on Mac):
 
 `trueRNG --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
-The above example will use the pseudo randon number generator by default.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401.  You will get a different modem device depending on several factors, so check /dev directory for yours.  
+The above example will use the pseudo random number generator by default.  On my system the TrueRNGv3 mostly comes up as: /dev/cu.usbmodem14401.  You will get a different modem device depending on several factors, so check /dev directory for yours.  
 The code doesn't incorporate any platform specific code to find a particular TRNG device.
 
 `trueRNG --device /dev/cu.usbmodemXXXXX --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
