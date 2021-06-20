@@ -3,6 +3,7 @@
 This utlity creates a *truly random playlist* using a TRNG device.  It will also work if pointed at */dev/random* or */dev/urandom* but won't be as random as they are mostly pseudo-random...
 
 I was annoyed that most music apps use *SQL* to randomly pull a playlist when in shuffle mode.  iTunes and SqueezeCenter both seem to clump up and play some tracks way more often than real-random would produce (I have no science to back this, all empirical).  Also they tend to never play certain tracks.  I've been paying attention to this for ten years.  It took me that long to get off my ass and fix it.
+Plus I wanted to be able to play all my music from start to finish completely randomly and hear every track only once. 
 
 Point this utlity at a folder of files and it will take the full recursive file list and truly randomize it-  This doesn't use *SQL* or **anything weird**.  Just a very random list of indices that map to the file list.  Point it at your music folder and it will generate a playlist if you give the file a .m3u extension.
 
@@ -10,7 +11,8 @@ As an example (on Mac):
 
 `trueRNG --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
-The above example will use the pseudo randon number generator by default.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401.  You will get a different modem device depending on several factors, so check /dev directory for your's.  The code doesn't incorporate any platform specific code to find a particular TRNG device.
+The above example will use the pseudo randon number generator by default.  On my system the TrueRNGv3 comes up as: /dev/cu.usbmodem14401.  You will get a different modem device depending on several factors, so check /dev directory for yours.  
+The code doesn't incorporate any platform specific code to find a particular TRNG device.
 
 `trueRNG --device /dev/cu.usbmodemXXXXX --dir ~/iTunes/Music --output my_really_random_playlist.m3u`
 
