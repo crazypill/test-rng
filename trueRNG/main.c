@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <getopt.h>
+#include <sys/termios.h>
 #if __APPLE__
 #include <mach/mach_time.h>
 #endif
@@ -25,7 +26,7 @@
 
 
 #define TRNG_DEVICE   "/dev/urandom"
-#define PROGRAM_NAME  "true-rng-playlist"
+#define PROGRAM_NAME  "trueRNG"
 #define VERSION       "100"
 
 // define this to pull a few numbers from the RNG before startup
@@ -46,6 +47,10 @@ typedef struct tagPathLink
 } PathLink;
 
 
+TimeInterval timeGetTimeMS( void );
+int start_random_generator( void );
+
+
 #pragma mark -
 
 
@@ -58,7 +63,7 @@ static const char* s_musicPlayListPath = NULL;
 #pragma mark -
 
 #if __APPLE__ || defined( WIN32 )
-TimeInterval timeGetTimeMS()
+TimeInterval timeGetTimeMS( void )
 {
 #ifdef WIN32
     return timeGetTime();
@@ -146,11 +151,32 @@ bool getbit( uint32_t value, uint8_t* bitmap, uint32_t bitmap_count )
 #pragma mark -
 
 
-int start_random_generator()
+int start_random_generator( void )
 {
-    int fd = open( s_trng_device, O_RDWR );
+    int            err;
+    struct termios options;
+
+    int fd = open( s_trng_device, O_RDWR | O_NOCTTY | O_NDELAY );
     if( fd < 0 )
         perror( "open failed" );
+    fcntl( fd, F_SETFL, 0 );
+
+    // get the current options
+    err = tcgetattr( fd, &options );
+    if( err < 0 )
+        perror( "tcgetattr failed" );
+
+    /* set raw input, 1 second timeout */
+    options.c_cflag     |= (CLOCAL | CREAD);
+    options.c_lflag     &= ~(ICANON | ECHO | ECHOE | ISIG);
+    options.c_oflag     &= ~OPOST;
+    options.c_cc[VMIN]  = 0;
+    options.c_cc[VTIME] = 10;
+
+    // set the options
+    err = tcsetattr( fd, TCSANOW, &options );
+    if( err < 0 )
+        perror( "tcsetattr failed" );
 
 #ifdef PRIME_RNG
     // start the generator by reading a tad from it
@@ -160,7 +186,7 @@ int start_random_generator()
         ssize_t bytesRead = read( fd, &rando, sizeof( uint32_t ) );
 #ifdef DEBUG
         if( bytesRead != sizeof( uint32_t ) )
-            printf( "rng priming failed...\n" );
+            printf( "start_random_generator: rng priming failed...\n" );
 #endif
     }
 #endif
@@ -179,7 +205,12 @@ uint32_t get_random( int fd )
     uint32_t rando = 0;
     ssize_t bytesRead = read( fd, &rando, sizeof( uint32_t ) );
     if( bytesRead != sizeof( uint32_t ) )
-        printf( "read failed...\n" );
+    {
+        // try again
+        bytesRead = read( fd, &rando, sizeof( uint32_t ) );
+        if( bytesRead != sizeof( uint32_t ) )
+            printf( "get_random: read failed... bytesRead: %ld, errno: %ld\n", bytesRead, errno );
+    }
     return rando;
 }
 
